@@ -4,7 +4,7 @@ service: todos
 frameworkVersion: '3'
 
 custom:
-  tableName: '${sls:service}-${sls:stage}'
+  tableName: '${self:service}-${sls:stage}'
 
 provider:
   name: aws
