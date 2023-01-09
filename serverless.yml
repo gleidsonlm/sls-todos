@@ -7,6 +7,7 @@ custom:
   tableName: '${self:service}-${sls:stage}'
   dynamodb:
     start:
+      inMemory: true
       migrate: true
     stages:
       - dev
@@ -31,19 +32,12 @@ provider:
     TODOS_TABLE: ${self:custom.tableName}
 
 functions:
-  get:
-    handler: src/functions/getTodos.getTodosByUser
+  api:
+    handler: src/index.handler
     events:
-      - httpApi:
-          path: /todos/{userid}
-          method: get
-  post:
-    handler: src/functions/postTodos.postTodoByUser
-    events:
-      - httpApi:
-          path: /todos/{userid}
-          method: post
-
+      - http:
+          path: /{proxy+}
+          method: any
 plugins:
   - serverless-plugin-typescript
   - serverless-dynamodb-local
@@ -54,13 +48,10 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: todoId
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: todoId
+          - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1,
-          WriteCapacityUnits: 1        
         TableName: ${self:custom.tableName}
