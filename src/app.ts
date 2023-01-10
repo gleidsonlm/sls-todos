@@ -1,84 +1,87 @@
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
+/* eslint-disable import/prefer-default-export */
+import { randomUUID } from "crypto";
 import * as express from "express";
+import { documentClient } from "./libs/documentClient";
 
 const app = express();
 app.use(express.json());
 
-interface IDocumentClientParams {
-  TableName: string;
-  Item?: object;
-  Key: object;
-}
-// interface IDocumentClientItem {
-//   id: string;
-//   userid: string;
-//   title: string;
-//   deadline: string;
-// }
-
-const options = () => {
-  if (process.env.IS_OFFLINE) {
-    return {
-      region: "localhost",
-      endpoint: "http://localhost:8000",
-      accessKeyId: "DEFAULT_ACCESS_KEY", // needed if you don't have aws credentials at all in env
-      secretAccessKey: "DEFAULT_SECRET", // needed if you don't have aws credentials at all in env
-    };
-  }
-  return {};
-};
-const documentClient = new DocumentClient(options());
-const todos = process.env.tableName as string;
+// const options = () => {
+//   if (process.env.IS_OFFLINE) {
+//     return {
+//       region: "localhost",
+//       endpoint: "http://localhost:8000",
+//       accessKeyId: "DEFAULT_ACCESS_KEY", // needed if you don't have aws credentials at all in env
+//       secretAccessKey: "DEFAULT_SECRET", // needed if you don't have aws credentials at all in env
+//     };
+//   }
+//   return {};
+// };
+// const documentClient = new DocumentClient(options());
+const todos = `${process.env.TODOS_TABLE}` as string;
 
 app.get(
-  "/todos/:id",
+  "/todos/:userid",
   async (request: express.Request, response: express.Response) => {
-    const { id } = request.params;
-    const params: IDocumentClientParams = {
+    const { userid } = request.params;
+
+    const params = {
       TableName: todos,
-      Key: { id },
+      IndexName: "useridIdx",
+      KeyConditions: {
+        userid: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [userid],
+        },
+      },
     };
 
     try {
-      const item = await documentClient.get(params).promise();
+      const userTodos = await documentClient.query(params).promise();
 
-      if (!item.Item) {
-        return response
-          .status(404)
-          .json({ error: `ToDo not found by id ${id}` });
-      }
-
-      return response.send(200).json(item.Item);
+      return response.status(200).json(userTodos.Items);
     } catch (error) {
       return response.status(500).json({ error: error.message });
     }
   }
 );
 
-/* app.post("/users", async function (req, res) {
-  const { userId, name } = req.body;
-  if (typeof userId !== "string") {
-    response.status(400).json({ error: '"userId" must be a string' });
-  } else if (typeof name !== "string") {
-    response.status(400).json({ error: '"name" must be a string' });
+app.post(
+  "/todos/:userid",
+  async (request: express.Request, response: express.Response) => {
+    const { userid } = request.params;
+
+    const { title, deadline } = request.body;
+
+    interface IPutParams {
+      TableName: string;
+      Item: IPutItemDTO;
+    }
+    interface IPutItemDTO {
+      id: string;
+      userid: string;
+      title: string;
+      deadline: string;
+    }
+
+    const params: IPutParams = {
+      TableName: todos,
+      Item: {
+        id: `${randomUUID()}`,
+        userid,
+        title,
+        deadline,
+      },
+    };
+
+    try {
+      await documentClient.put(params).promise();
+
+      return response.status(201).send();
+    } catch (error) {
+      return response.status(500).json({ error: error.message });
+    }
   }
+);
 
-  const params = {
-    TableName: USERS_TABLE,
-    Item: {
-      userId: userId,
-      name: name,
-    },
-  };
-
-  try {
-    await dynamoDbClient.put(params).promise();
-    response.json({ userId, name });
-  } catch (error) {
-    console.log(error);
-    response.status(500).json({ error: "Could not create user" });
-  }
-}); */
-
-// eslint-disable-next-line import/prefer-default-export
 export { app };
