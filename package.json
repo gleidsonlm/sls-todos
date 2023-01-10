@@ -1,7 +1,8 @@
 {
   "name": "todos",
-  "description": "Serverless ToDo'S API with Node.js, TypeScript, and DynamoDB",
+  "description": "Serverless ToDo'S API with Node.js, TypeScript, Express, AWS Lambda, and DynamoDB",
   "version": "1.0.0",
+  "license": "AGPLv3",
   "dependencies": {
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1290.0",
