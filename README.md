@@ -1,7 +1,8 @@
 # SLS ToDo'S 
 
-Serverless (SLS) ToDo'S is a backend API to create and read tasks (todos) that you can incorporate into your applicaton.
-It is built using [Serverless](https://www.serverless.com/) with Node.js, Express, AWS Lambda, and DynamoDB. In the current implementation, your will use it as a REST API endpoint. For developers, this project also provides the capabilities to run AWS Lambda functions offline and local DynamoDB.
+Serverless (SLS) ToDo'S is a backend API to create and list tasks (todos) that you can incorporate into your applicaton.
+
+It is built using [Serverless](https://www.serverless.com/) with Node.js, Express, AWS Lambda, and DynamoDB. In the current implementation, your will use it as a REST API endpoint. For developers, it provides the capability to run it locally.
 
 ## Installation
 
@@ -12,48 +13,46 @@ For this project, you will need:
         [  ] Serverless Offline
         [  ] Serverless DynamoDB
 
-Install Node.js, preferable with NVM and NPM. Check the installation with the commands:
+Install [Node.js, preferable with NVM and NPM] (https://docs.npmjs.com/downloading-and-installing-node-js-and-npm). 
+
+Check the installation with the commands:
 ```
-node -v
-npm -v
 nvm -v
+npm -v
+node -v
 ```
 
-I recommend you to install Serverless it as global.
-``` 
-npm install --global serverless
-```
-
-You can use the Serverless Offline Plugin to development stage. For production, you need to configure a [AWS Credentials](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/).
-
-
-With Node.js and NPM installed, execute the following command within the project "root" directory.
+Install all dependencies in the file ```package.json```, executing the following command within the project "root" directory.
 ``` 
 npm install
 ```
 
+Install Serverless as a global npm package.
+``` 
+npm install --global serverless
+```
+
 ## Deployment
 
-I recommend you to register in the Serverless site and take advantage of their Dashboard and Console. 
-This will create the Cloud Stack Formation necessary to run your application in production using AWS Lambda and DynamoDB.
+You can use the Serverless Offline Plugin to development stage. For production, you'll need to configure [AWS Credentials](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/).
 
-If you are already registered you can deploy your application.
+I recommend you to register in the Serverless site and take advantage of their Dashboard and Console.
+
+You can deploy your application with:
 
 ``` 
 serverless deploy
 ```
 
-## Invocation
+## Examples
 
-After the sucessful deployment, you can create a new todo for an user by sending a POST request to the "todos/:userid" endpoint, with a JSON object containing the "title" and "deadline" properties.
+You can create a new todo for an user by sending a POST request to the "todos/:userid" endpoint. The request must have a JSON object containing the "title" and "deadline" properties. Please, notice that ":userid" is a path parameter and will not be validated or managed in this service.
 
-Please, notice that ":userid" is a path parameter and will not be validated in the "ToDo" function. Here's an example:
+Here's an example to create a ToDo, returning the status code 201 without body content.
 
 ```
 curl -X POST -H "Content-Type:application/json" https://`${YOUR_IDENTIFICATOR}`.execute-api.us-east-1.amazonaws.com/todos/`${YOUR_USER_ID}` --data '{ "title": "Learn Serverless", "deadline": "01-01-2024 00:00:00" }'
 ```
-
-If successful, this will return status code 201 without body content.
 
 You can retrive existent todo for an user by sending a GET request to the "todos/:userid" endpoint. Example:
 
@@ -61,7 +60,7 @@ You can retrive existent todo for an user by sending a GET request to the "todos
 curl -X GET https://`${YOUR_IDENTIFICATOR}`.execute-api.us-east-1.amazonaws.com/todos/`${YOUR_USER_ID}`
 ```
 
-If sucessful, this will return status code 200 with a "ToDo" JSON object, for example:
+This will return status code 200 with an array with "ToDo" JSON objects. If no ToDo was found for the user, it returns an empty array. For example:
 
 ```
 [{"id":`${YOUR_TODO_ID}`,"title":"Learn Serverless","deadline":"01-01-2024 00:00:00","userid":`${YOUR_IDENTIFICATOR}`}]
